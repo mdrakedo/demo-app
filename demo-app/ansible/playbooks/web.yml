@@ -1,0 +1,33 @@
+---
+
+- hosts: web
+  gather_facts: false
+  become: yes
+
+  pre_tasks:
+  - name: Wait 600 seconds for target connection to become reachable/usable
+    wait_for_connection:
+
+  tasks:
+
+  - name: Copy application
+    copy:
+      src: /root/statuspage-demo/app/
+      dest: /opt/statuspage-demo
+
+  - name: Make application binary executable
+    file:
+      path: /opt/statuspage-demo/app
+      mode: 0744
+
+  - name: Create systemd service configuration
+    template:
+      src: /root/statuspage-demo/ansible/templates/statuspage-demo.service.j2
+      dest: /lib/systemd/system/statuspage-demo.service
+
+  - name: Start statuspage-demo systemd service
+    systemd:
+      name: statuspage-demo
+      state: started
+      enabled: True
+      daemon_reload: yes

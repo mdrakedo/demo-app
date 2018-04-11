@@ -1,0 +1,57 @@
+---
+
+- hosts: db
+  gather_facts: false
+  become: yes
+
+  pre_tasks:
+  - name: Wait 600 seconds for target connection to become reachable/usable
+    wait_for_connection:
+
+  tasks:
+
+  - name: Install packages
+    apt:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - mysql-server
+      - python-mysqldb
+
+  - name: Start mysql service
+    service:
+      enabled: yes
+      name: mysql
+      state: started
+
+  - name: Change mysql bind address
+    lineinfile:
+      path: /etc/mysql/mysql.conf.d/mysqld.cnf
+      line: 'bind-address = 0.0.0.0'
+
+  - name: Restart mysql
+    service: "name=mysql state=restarted sleep=5"
+
+  - copy:
+      src: /root/statuspage-demo/ansible/files/statuspage-db.sql
+      dest: /root/statuspage-db.sql
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Create statuspage database
+    mysql_db:
+      name: statuspage
+      state: present
+
+  - name: Import statuspage database dump
+    mysql_db:
+      state: import
+      name: all
+      target: /root/statuspage-db.sql
+
+  - mysql_user:
+      name: statuspage
+      password: statuspage
+      priv: '*.*:ALL,GRANT'
+      state: present

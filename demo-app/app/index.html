@@ -1,0 +1,42 @@
+{{ $title := "Rubber Ducker Status Page"}}
+<!doctype html>
+<html>
+  <head>
+    <title>{{ $title }}</title>
+    <link href="/static/style.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <h1>{{ $title }}</h1>
+      <section>
+        <h4>Components</h4>
+        {{ range .Components }}
+        <div class="component">
+          <span>{{ .Name }}</span>
+          <span class="{{ .Status }}">{{ .Status }}</span>
+        </div>
+        {{ end }}
+      </section>
+      <section>
+        <h4>Incidents</h4>
+        {{ range .Days }}
+        <div class="day">
+          <h6>{{ "Jan _2, 2006" | .Date.Format }}</h6>
+          {{- if .Incidents }}
+          {{ range .Incidents }}
+          <div class="incident">
+            <p class="highlight title">{{ "15:04:05" | .Date.Format }} - {{ .Title }}</p>
+            <p class="highlight">{{ .Description }}</p>
+          </div>
+          {{ end }}
+          {{ else }}
+          <div class="incident">
+            <p>No incidents reported.</p>
+          </div>
+          {{ end }}
+        </div>
+        {{ end }}
+      </section>
+    </div>
+  </body>
+</html>
